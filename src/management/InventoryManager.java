@@ -1,11 +1,12 @@
 package management;
 
-import classes.*;
+import model.*;
 import enums.Material;
 import enums.Theme;
-import exceptions.*;
+import exception.*;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class InventoryManager {
 
@@ -35,12 +36,27 @@ public class InventoryManager {
 
     public void addRoom(Room r) throws DuplicatedRoomException {
         String name = r.getName();
-        Room roomFound = this.findRoom(name);
+        Room roomFound = null;
+        try {
+            roomFound = this.findRoom(name);
+        } catch (RoomNotFoundException e) {
+            System.out.println("The name " + r.getName() + " is available. Creating room...");
+        }
 
         if(roomFound != null) {
-            throw new DuplicatedRoomException("This room already exists.");
+            throw new DuplicatedRoomException("A room with the name " + r.getName() + " already exists.");
         }
         this.inventoryRooms.add(r);
+    }
+
+    public void addClue(Room room, Clue clue) {
+        room.getClues().add(clue);
+        room.setTotalPrice(room.getTotalPrice() + clue.getPrice());
+    }
+
+    public void addDecoItem(Room room, DecorationItem decoItem) {
+        room.getDecorationItems().add(decoItem);
+        room.setTotalPrice(room.getTotalPrice() + decoItem.getPrice());
     }
 
     private void createClues() {
@@ -56,60 +72,73 @@ public class InventoryManager {
         this.inventoryDecoItems.add(new DecorationItem(32, "wineglass", Material.GLASS));
     }
 
-    public void showRooms() throws NoRoomsException {
-        if(this.inventoryRooms.isEmpty()) {
+    public List<Room> showRooms() throws NoRoomsException {
+        List<Room> rooms = this.inventoryRooms;
+        if(rooms.isEmpty()) {
             throw new NoRoomsException("There are no rooms at the moment.");
         }
-        System.out.println("Registered rooms:");
+
         this.inventoryRooms.stream().map(r -> "ID: " + r.getRoomId() + ", Name: " + r.getName() + ", Price: " + r.getTotalPrice()).forEach(System.out::println);
-        System.out.println("Total number of rooms: " + this.inventoryRooms.size());
-        System.out.println("Total price: " + this.inventoryRooms.stream().mapToDouble(Room::getTotalPrice).sum());
+        return rooms;
     }
 
-    public void showClues() throws NoCluesException {
-        if(this.inventoryClues.isEmpty()) {
+    public List<Clue> showClues() throws NoCluesException {
+        List<Clue> clues = this.inventoryClues;
+        if(clues.isEmpty()) {
             throw new NoCluesException("There are no clues at the moment.");
         }
-        System.out.println("Registered clues:");
+
         this.inventoryClues.stream().map(c -> "ID: " + c.getId() + ", Name: " + c.getName() + ", Price: " + c.getPrice()).forEach(System.out::println);
-        System.out.println("Total number of clues: " + this.inventoryClues.size());
-        System.out.println("Total price: " + this.inventoryClues.stream().mapToDouble(Clue::getPrice).sum());
+        return clues;
     }
 
-    public void showDecoItems() throws NoDecoItemsException {
+    public List<DecorationItem> showDecoItems() throws NoDecoItemsException {
+        List<DecorationItem> decoItems = this.inventoryDecoItems;
         if(this.inventoryDecoItems.isEmpty()) {
             throw new NoDecoItemsException("There are no decoration items at the moment.");
         }
-        System.out.println("Registered decoration items:");
+
         this.inventoryDecoItems.stream().map(d -> "ID: " + d.getId() + ", Name: " + d.getName() + ", Price: " + d.getPrice()).forEach(System.out::println);
-        System.out.println("Total number of decoration items: " + this.inventoryDecoItems.size());
-        System.out.println("Total price: " + this.inventoryDecoItems.stream().mapToDouble(DecorationItem::getPrice).sum());
+        return decoItems;
     }
 
-    public void removeRoom() throws NoRoomsException {
+    public void removeRoom(Room room) throws NoRoomsException {
         if(this.inventoryRooms.isEmpty()) {
             throw new NoRoomsException("There are no rooms at the moment.");
         }
-        this.inventoryRooms.remove(0);
+        this.inventoryRooms.remove(room);
     }
 
-    public void removeClue() throws NoCluesException {
+    public void removeClue(Clue clue) throws NoCluesException {
         if(this.inventoryClues.isEmpty()) {
             throw new NoCluesException("There are no clues at the moment.");
         }
-        this.inventoryClues.remove(0);
+        this.inventoryClues.remove(clue);
     }
 
-    public void removeDecoItem() throws NoDecoItemsException {
+    public void removeDecoItem(DecorationItem decoItem) throws NoDecoItemsException {
         if(this.inventoryDecoItems.isEmpty()) {
             throw new NoDecoItemsException("There are no decoration items at the moment.");
         }
-        this.inventoryDecoItems.remove(0);
+        this.inventoryDecoItems.remove(decoItem);
     }
 
-    public Room findRoom(String name) {
-        Room room = this.inventoryRooms.stream().filter(r -> r.getName().equalsIgnoreCase(name)).findFirst().orElse(null);
+    public Room findRoom(String name) throws RoomNotFoundException {
+        Room room = this.inventoryRooms.stream().filter(r -> r.getName().equalsIgnoreCase(name)).findFirst().orElseThrow(() ->
+                new RoomNotFoundException("This room is not in the system."));
         return room;
+    }
+
+    public Clue findClue(String name) throws ClueNotFoundException {
+        Clue clue = this.inventoryClues.stream().filter(r -> r.getName().equalsIgnoreCase(name)).findFirst().orElseThrow(() ->
+                new ClueNotFoundException("This clue is not in the system."));
+        return clue;
+    }
+
+    public DecorationItem findDecoItem(String name) throws DecoItemNotFoundException {
+        DecorationItem decoItem = this.inventoryDecoItems.stream().filter(r -> r.getName().equalsIgnoreCase(name)).findFirst().orElseThrow(() ->
+                new DecoItemNotFoundException("This decoration item is not in the system."));
+        return decoItem;
     }
 
 }

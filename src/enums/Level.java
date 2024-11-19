@@ -1,5 +1,10 @@
 package enums;
 
+import exception.ValueNotFoundException;
+
+import java.util.Arrays;
+import java.util.Optional;
+
 public enum Level {
 
     BEGINNER(1, "beginner"),
@@ -14,7 +19,7 @@ public enum Level {
         this.levelName = levelName;
     }
 
-    public int getValue() {
+    public int getVALUE() {
         return VALUE;
     }
 
@@ -22,12 +27,13 @@ public enum Level {
         return levelName;
     }
 
-    public static Level findByValue(int value) {
-        for (Level level : values()) {
-            if (level.getValue() == value) {
-                return level;
-            }
+    public static Optional<Level> findByValue(int value) throws ValueNotFoundException {
+        Optional<Level> levelFound = Arrays.stream(values())
+                .filter(level -> level.getVALUE() == value)
+                .findFirst();
+        if(levelFound.isEmpty()) {
+            throw new ValueNotFoundException("This option is not valid.");
         }
-        return null;
+        return levelFound;
     }
 }

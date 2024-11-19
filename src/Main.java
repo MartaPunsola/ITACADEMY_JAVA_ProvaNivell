@@ -1,9 +1,9 @@
-import logic.Escape;
+import logic.EscapeMenu;
 
 public class Main {
     public static void main(String[] args) {
 
-        Escape escape = new Escape();
+        EscapeMenu escape = new EscapeMenu();
         escape.start();
     }
 }
